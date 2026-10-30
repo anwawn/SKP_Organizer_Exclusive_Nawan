@@ -152,10 +152,7 @@
             <label>Unggah Foto Kegiatan</label>
             <input type="file" id="photos" multiple accept="image/*">
         </div>
-        <div class="form-group">
-            <label>Kop Laporan (Opsional jika gagal muat otomatis)</label>
-            <input type="file" id="kopManual" accept="image/*">
-        </div>
+        <!-- Kolom input Kop Laporan manual dihapus sesuai permintaan -->
         <div class="form-group">
             <label>Tanggal (Isi manual untuk menimpa data foto)</label>
             <input type="date" id="fallbackDate">
@@ -311,25 +308,12 @@
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, A3_WIDTH, A3_HEIGHT);
 
-        // MEMUAT GAMBAR KOP (Dari file input jika ada, atau file lokal otomatis)
-        let kopManualFile = document.getElementById('kopManual').files[0];
+        // MEMUAT GAMBAR KOP MURNI SECARA OTOMATIS
         let kopImg = await new Promise((resolve) => {
             let img = new Image();
-            let objectUrl = null;
-            
-            img.onload = () => {
-                if(objectUrl) URL.revokeObjectURL(objectUrl);
-                resolve(img);
-            };
-            
+            img.onload = () => resolve(img);
             img.onerror = () => resolve(null);
-            
-            if (kopManualFile) {
-                objectUrl = URL.createObjectURL(kopManualFile);
-                img.src = objectUrl;
-            } else {
-                img.src = "KOP LAPORAN SKP ORGANIZER.jpg";
-            }
+            img.src = "KOP LAPORAN SKP ORGANIZER.jpg";
         });
 
         // MENGGAMBAR KOP DARI UJUNG KE UJUNG KANVAS
@@ -339,20 +323,22 @@
             ctx.drawImage(kopImg, 0, 0, A3_WIDTH, kopHeight);
         }
 
-        // WATERMARK (Dipindah ke tengah bawah dokumen)
+        // WATERMARK (Di tengah bawah dokumen)
         ctx.fillStyle = '#94a3b8';
         ctx.font = 'italic 24px "Poppins", "Segoe UI", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText("Daily Activity Report Organizer, develop by : @anwawn | 2K26", A3_WIDTH / 2, A3_HEIGHT - 40);
         ctx.textAlign = 'left';
 
-        // KALKULASI RUANG KANVAS DINAMIS
+        // KALKULASI RUANG KANVAS DINAMIS: 90% FOTO, 10% TEKS DESKRIPSI
         let startY = kopHeight > 0 ? kopHeight + (MARGIN / 2) : MARGIN;
         let bottomSpace = 80; 
         
         let AVAILABLE_HEIGHT = A3_HEIGHT - startY - bottomSpace;
         const CONTENT_WIDTH = A3_WIDTH - (MARGIN * 2);
-        const photoAreaHeight = Math.floor(AVAILABLE_HEIGHT * 0.72); 
+        
+        // Pembagian ruang 90% untuk foto
+        const photoAreaHeight = Math.floor(AVAILABLE_HEIGHT * 0.90); 
         const textAreaHeight = AVAILABLE_HEIGHT - photoAreaHeight;
 
         let images = [];
@@ -463,6 +449,7 @@
             currentY += h + paddingGap;
         }
 
+        // MENGGAMBAR KOTAK TEKS (Ukuran 10%)
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(MARGIN, startY + photoAreaHeight, CONTENT_WIDTH, textAreaHeight);
         
@@ -471,26 +458,27 @@
         let d = new Date(parseInt(dateData.year), parseInt(dateData.month) - 1, parseInt(dateData.day));
         let dateString = `${days[d.getDay()]}, ${dateData.day} ${months[d.getMonth()]} ${dateData.year}`;
 
-        let textY = startY + photoAreaHeight + 70;
-        let paddingX = MARGIN + 50;
+        // Mengatur padding & font agar muat di area 10%
+        let textY = startY + photoAreaHeight + 40;
+        let paddingX = MARGIN + 40;
 
         ctx.fillStyle = '#0f172a';
-        ctx.font = 'bold 44px "Poppins", "Segoe UI", sans-serif';
+        ctx.font = 'bold 32px "Poppins", "Segoe UI", sans-serif';
         ctx.fillText(dateString, paddingX, textY);
         
-        textY += 55; 
+        textY += 40; 
         ctx.fillStyle = '#334155';
-        ctx.font = '600 34px "Poppins", "Segoe UI", sans-serif';
+        ctx.font = '600 28px "Poppins", "Segoe UI", sans-serif';
         ctx.fillText(timeString, paddingX, textY);
 
-        textY += 65; 
+        textY += 45; 
         ctx.fillStyle = '#1e293b';
-        ctx.font = '34px "Poppins", "Segoe UI", sans-serif';
+        ctx.font = '28px "Poppins", "Segoe UI", sans-serif';
         
         let words = description.split(' ');
         let line = ''; 
-        const maxWidth = CONTENT_WIDTH - 100;
-        const lineHeight = 48;
+        const maxWidth = CONTENT_WIDTH - 80;
+        const lineHeight = 36;
 
         for(let n = 0; n < words.length; n++) {
             let testLine = line + words[n] + ' ';
@@ -545,6 +533,7 @@
         let linkHari = `https://drive.google.com/drive/folders/${folderIdHari}`;
         
         let newEntry = `=================================\nWaktu: ${timeString}\nDeskripsi:\n${desc}`;
+        
         let linkText = `\n\n---------------------------------\n[ TAUTAN FOLDER DRIVE ]\n📁 Folder Bulan:\n${linkBulan}\n\n📁 Folder Hari:\n${linkHari}`;
 
         if (searchRes.files && searchRes.files.length > 0) {
