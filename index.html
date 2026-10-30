@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Kegiatan Organizer by @anwawn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --success-hover: #059669;
+            --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+        }
+
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        
+        body { 
+            background: var(--bg-gradient); 
+            min-height: 100vh; 
+            padding: 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            color: var(--text-main); 
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 550px; 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 35px 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 { font-size: 1.4rem; text-align: center; color: var(--primary); margin-bottom: 25px; font-weight: 600; }
+        
+        .form-group { margin-bottom: 20px; }
+        .flex-group { display: flex; gap: 15px; width: 100%; }
+        .flex-group > div { flex: 1; min-width: 0; }
+        
+        label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.95rem; color: var(--text-main); }
+        
+        input[type="date"], input[type="time"], textarea { 
+            width: 100%; 
+            max-width: 100%;
+            box-sizing: border-box;
+            padding: 12px 15px; 
+            border: 1.5px solid #d1d5db; 
+            border-radius: 10px; 
+            font-size: 0.95rem; 
+            transition: all 0.3s ease; 
+            background: #f9fafb;
+        }
+        
+        input[type="date"]:focus, input[type="time"]:focus, textarea:focus { 
+            border-color: var(--primary); outline: none; background: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); 
+        }
+        
+        input[type="file"] {
+            width: 100%; padding: 15px; background: #f8fafc;
+            border: 2px dashed #cbd5e1; border-radius: 12px; cursor: pointer; transition: 0.3s;
+            box-sizing: border-box;
+        }
+        input[type="file"]:hover { border-color: var(--primary); }
+        input[type="file"]::file-selector-button {
+            background: var(--primary); color: white; border: none;
+            padding: 8px 16px; border-radius: 8px; cursor: pointer;
+            margin-right: 15px; font-weight: 500; transition: 0.3s;
+        }
+        input[type="file"]::file-selector-button:hover { background: var(--primary-hover); }
+
+        textarea { resize: vertical; height: 120px; }
+        .char-counter { font-size: 0.8rem; text-align: right; color: var(--text-muted); margin-top: 4px; }
+        
+        button { 
+            width: 100%; padding: 14px; border: none; border-radius: 12px; 
+            font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 15px; 
+            transition: all 0.3s ease; display: flex; justify-content: center; align-items: center;
+        }
+        
+        .btn-auth { background-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+        .btn-auth:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        
+        .btn-upload { background-color: var(--success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); display: none; }
+        .btn-upload:hover { background-color: var(--success-hover); transform: translateY(-2px); }
+        .btn-upload:disabled { background-color: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        #status { margin-top: 20px; font-size: 0.9rem; text-align: center; color: var(--text-muted); font-weight: 500; }
+        .loading:after { content: '...'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60%, 100% { content: '...'; } }
+
+        @media (max-width: 480px) {
+            .container { padding: 25px 15px; }
+            .flex-group { 
+                flex-direction: row;
+                gap: 8px;
+            }
+            .flex-group label {
+                font-size: 0.8rem;
+            }
+            .flex-group input[type="time"] {
+                padding: 10px 8px;
+                font-size: 0.85rem;
+            }
+        }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); z-index: 999; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: scaleIn 0.3s ease;
+        }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-title { color: var(--primary); font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; text-align: center; }
+        .modal-data-row { background: #f8fafc; padding: 12px 15px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+        .modal-label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+        .modal-value { font-size: 1rem; color: var(--text-main); font-weight: 600; }
+        
+        .modal-buttons { display: flex; gap: 12px; margin-top: 25px; }
+        .btn-cancel { flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-cancel:hover { background: #e2e8f0; }
+        .btn-proceed { flex: 1; padding: 12px; background: var(--success); color: white; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        .btn-proceed:hover { background: var(--success-hover); transform: translateY(-2px); }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Laporan Kegiatan Organizer<br><span style="font-size: 0.85rem; font-weight: 400; color: #6b7280;">by @anwawn</span></h1>
+    
+    <button id="btnAuth" class="btn-auth">
+        <svg style="width: 20px; height: 20px; margin-right: 8px;" viewBox="0 0 24 24" fill="white"><path d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.2,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.1,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.25,22C17.6,22 21.5,18.33 21.5,12.91C21.5,11.76 21.35,11.1 21.35,11.1V11.1Z"/></svg>
+        Login Google Drive
+    </button>
+
+    <div id="appInterface" style="display: none; margin-top: 10px;">
+        <div class="form-group">
+            <label>Unggah Foto Kegiatan</label>
+            <input type="file" id="photos" multiple accept="image/*">
+        </div>
+        <div class="form-group">
+            <label>Kop Laporan (Opsional jika gagal muat otomatis)</label>
+            <input type="file" id="kopManual" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label>Tanggal (Isi manual untuk menimpa data foto)</label>
+            <input type="date" id="fallbackDate">
+        </div>
+        <div class="form-group flex-group">
+            <div>
+                <label>Waktu Mulai (Alt)</label>
+                <input type="time" id="fallbackTimeStart">
+            </div>
+            <div>
+                <label>Waktu Akhir (Alt)</label>
+                <input type="time" id="fallbackTimeEnd">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Deskripsi Kegiatan</label>
+            <textarea id="description" maxlength="500" placeholder="Tuliskan detail deskripsi kegiatan di sini (Maks. 500 karakter)..."></textarea>
+            <div class="char-counter"><span id="charCount">0</span>/500 karakter</div>
+        </div>
+        <button id="btnUpload" class="btn-upload">Susun Laporan A3 & Unggah</button>
+    </div>
+
+    <div id="status"></div>
+    <canvas id="canvas" style="display: none;"></canvas>
+</div>
+
+<!-- Modal Pop-up Konfirmasi -->
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title">Konfirmasi Data Laporan</div>
+        <div class="modal-data-row">
+            <span class="modal-label">Hari & Tanggal</span>
+            <div class="modal-value" id="confDate">-</div>
+        </div>
+        <div class="modal-data-row">
+            <span class="modal-label">Rentang Waktu</span>
+            <div class="modal-value" id="confTime">-</div>
+        </div>
+        <p style="font-size: 0.85rem; color: #64748b; margin-top: 15px; text-align: center;">
+            Pastikan data ini sudah benar sebelum menggenerasi laporan A3 dan mengunggahnya ke Drive.
+        </p>
+        <div class="modal-buttons">
+            <button id="btnConfCancel" class="btn-cancel">Kembali</button>
+            <button id="btnConfProceed" class="btn-proceed">Lanjutkan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CLIENT_ID = '899048761775-dbutua2rjtdcaitocooenf4kr677dcnk.apps.googleusercontent.com';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+    let tokenClient;
+    
+    let accessToken = localStorage.getItem('gdrive_token');
+    let tokenExpiry = localStorage.getItem('gdrive_token_expiry');
+
+    const descInput = document.getElementById('description');
+    const charCountSpan = document.getElementById('charCount');
+    descInput.oninput = function() {
+        charCountSpan.innerText = this.value.length;
+    };
+
+    window.onload = function () {
+        if (accessToken && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
+            document.getElementById('btnAuth').style.display = 'none';
+            document.getElementById('appInterface').style.display = 'block';
+            document.getElementById('btnUpload').style.display = 'block';
+            logStatus("Sesi aktif. Anda siap membuat laporan.");
+        }
+
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    accessToken = tokenResponse.access_token;
+                    let expiryTime = Date.now() + (tokenResponse.expires_in * 1000);
+                    localStorage.setItem('gdrive_token', accessToken);
+                    localStorage.setItem('gdrive_token_expiry', expiryTime.toString());
+
+                    document.getElementById('btnAuth').style.display = 'none';
+                    document.getElementById('appInterface').style.display = 'block';
+                    document.getElementById('btnUpload').style.display = 'block';
+                    logStatus("Login berhasil. Sesi akan bertahan selama 1 jam.");
+                }
+            }
+        });
+    };
+
+    document.getElementById('btnAuth').onclick = () => { tokenClient.requestAccessToken(); };
+
+    function logStatus(msg, isLoading = false) {
+        const statusEl = document.getElementById('status');
+        statusEl.innerText = msg;
+        if (isLoading) {
+            statusEl.classList.add('loading');
+        } else {
+            statusEl.classList.remove('loading');
+        }
+    }
+
+    function askUserConfirmation(dateString, timeString) {
+        return new Promise((resolve) => {
+            const overlay = document.getElementById('modalOverlay');
+            document.getElementById('confDate').innerText = dateString;
+            document.getElementById('confTime').innerText = timeString;
+            overlay.style.display = 'flex';
+
+            document.getElementById('btnConfProceed').onclick = () => {
+                overlay.style.display = 'none';
+                resolve(true); 
+            };
+            
+            document.getElementById('btnConfCancel').onclick = () => {
+                overlay.style.display = 'none';
+                resolve(false); 
+            };
+        });
+    }
+
+    function getPhotoExifData(file) {
+        return new Promise((resolve) => {
+            EXIF.getData(file, function() {
+                let dateStr = EXIF.getTag(this, "DateTimeOriginal");
+                if (dateStr) {
+                    let parts = dateStr.split(" ");
+                    if (parts.length === 2) {
+                        let dParts = parts[0].split(":");
+                        let tParts = parts[1].split(":");
+                        resolve({ 
+                            year: dParts[0], month: dParts[1], day: dParts[2],
+                            hour: tParts[0], minute: tParts[1],
+                            totalMins: parseInt(tParts[0]) * 60 + parseInt(tParts[1])
+                        });
+                        return;
+                    }
+                }
+                resolve(null);
+            });
+        });
+    }
+
+    async function createReportImage(files, description, dateData, timeString) {
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const A3_WIDTH = 1754; 
+        const A3_HEIGHT = 2480;
+        const MARGIN = 60; 
+        
+        canvas.width = A3_WIDTH; canvas.height = A3_HEIGHT;
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, A3_WIDTH, A3_HEIGHT);
+
+        // MEMUAT GAMBAR KOP (Dari file input jika ada, atau file lokal otomatis)
+        let kopManualFile = document.getElementById('kopManual').files[0];
+        let kopImg = await new Promise((resolve) => {
+            let img = new Image();
+            let objectUrl = null;
+            
+            img.onload = () => {
+                if(objectUrl) URL.revokeObjectURL(objectUrl);
+                resolve(img);
+            };
+            
+            img.onerror = () => resolve(null);
+            
+            if (kopManualFile) {
+                objectUrl = URL.createObjectURL(kopManualFile);
+                img.src = objectUrl;
+            } else {
+                img.src = "KOP LAPORAN SKP ORGANIZER.jpg";
+            }
+        });
+
+        // MENGGAMBAR KOP DARI UJUNG KE UJUNG KANVAS
+        let kopHeight = 0;
+        if (kopImg) {
+            kopHeight = Math.floor(A3_WIDTH * (kopImg.height / kopImg.width));
+            ctx.drawImage(kopImg, 0, 0, A3_WIDTH, kopHeight);
+        }
+
+        // WATERMARK (Dipindah ke tengah bawah dokumen)
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'italic 24px "Poppins", "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("Daily Activity Report Organizer, develop by : @anwawn | 2K26", A3_WIDTH / 2, A3_HEIGHT - 40);
+        ctx.textAlign = 'left';
+
+        // KALKULASI RUANG KANVAS DINAMIS
+        let startY = kopHeight > 0 ? kopHeight + (MARGIN / 2) : MARGIN;
+        let bottomSpace = 80; 
+        
+        let AVAILABLE_HEIGHT = A3_HEIGHT - startY - bottomSpace;
+        const CONTENT_WIDTH = A3_WIDTH - (MARGIN * 2);
+        const photoAreaHeight = Math.floor(AVAILABLE_HEIGHT * 0.72); 
+        const textAreaHeight = AVAILABLE_HEIGHT - photoAreaHeight;
+
+        let images = [];
+        for (let file of files) {
+            let img = await new Promise((resolve) => {
+                let image = new Image();
+                let objectUrl = URL.createObjectURL(file);
+                image.onload = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    resolve(image);
+                };
+                image.src = objectUrl;
+            });
+            images.push(img);
+        }
+
+        let paddingGap = 16;
+        let borderRadius = 20;
+        
+        let low = 50;   
+        let high = 1500; 
+        let finalRows = [];
+        let finalTotalHeight = 0;
+
+        for (let iter = 0; iter < 50; iter++) {
+            let mid = (low + high) / 2; 
+            let tempRows = [];
+            let currentRow = [];
+            let currentRatio = 0;
+
+            for (let i = 0; i < images.length; i++) {
+                let ratio = images[i].width / images[i].height;
+                currentRow.push({ img: images[i], ratio: ratio });
+                currentRatio += ratio;
+
+                let h_justified = (CONTENT_WIDTH - paddingGap * (currentRow.length - 1)) / currentRatio;
+
+                if (h_justified <= mid || i === images.length - 1) {
+                    tempRows.push({ items: currentRow, ratio: currentRatio, h: h_justified });
+                    currentRow = [];
+                    currentRatio = 0;
+                }
+            }
+
+            if (tempRows.length > 1) {
+                let prevH = tempRows[tempRows.length - 2].h;
+                if (tempRows[tempRows.length - 1].h > prevH * 1.3) {
+                    tempRows[tempRows.length - 1].h = prevH;
+                    tempRows[tempRows.length - 1].isCentered = true; 
+                }
+            } else if (tempRows.length === 1 && tempRows[0].h > photoAreaHeight * 0.7) {
+                tempRows[0].h = photoAreaHeight * 0.7;
+                tempRows[0].isCentered = true;
+            }
+
+            let totalH = tempRows.reduce((sum, r) => sum + r.h, 0) + paddingGap * (tempRows.length - 1);
+
+            if (totalH <= photoAreaHeight) {
+                finalRows = tempRows;
+                finalTotalHeight = totalH;
+                low = mid; 
+            } else {
+                high = mid;
+            }
+        }
+
+        if (finalRows.length === 0) finalRows = [{ items: images.map(img => ({img, ratio: img.width/img.height})), h: photoAreaHeight/3, ratio: images.reduce((sum, img)=>sum+img.width/img.height,0), isCentered: true }];
+
+        let currentY = startY;
+        if (finalTotalHeight < photoAreaHeight) {
+            currentY = startY + (photoAreaHeight - finalTotalHeight) / 2;
+        }
+
+        for (let r = 0; r < finalRows.length; r++) {
+            let row = finalRows[r];
+            let h = row.h;
+            let currentX = MARGIN;
+            
+            if (row.isCentered) {
+                let rowW = row.items.reduce((sum, item) => sum + (h * item.ratio), 0) + paddingGap * (row.items.length - 1);
+                currentX = MARGIN + (CONTENT_WIDTH - rowW) / 2;
+            }
+
+            for (let i = 0; i < row.items.length; i++) {
+                let item = row.items[i];
+                let w = h * item.ratio; 
+
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 6;
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.roundRect(currentX, currentY, w, h, borderRadius);
+                ctx.fill();
+                ctx.restore();
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(currentX, currentY, w, h, borderRadius);
+                ctx.clip();
+                ctx.drawImage(item.img, currentX, currentY, w, h);
+                ctx.restore();
+
+                currentX += w + paddingGap;
+            }
+            currentY += h + paddingGap;
+        }
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(MARGIN, startY + photoAreaHeight, CONTENT_WIDTH, textAreaHeight);
+        
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        let d = new Date(parseInt(dateData.year), parseInt(dateData.month) - 1, parseInt(dateData.day));
+        let dateString = `${days[d.getDay()]}, ${dateData.day} ${months[d.getMonth()]} ${dateData.year}`;
+
+        let textY = startY + photoAreaHeight + 70;
+        let paddingX = MARGIN + 50;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 44px "Poppins", "Segoe UI", sans-serif';
+        ctx.fillText(dateString, paddingX, textY);
+        
+        textY += 55; 
+        ctx.fillStyle = '#334155';
+        ctx.font = '600 34px "Poppins", "Segoe UI", sans-serif';
+        ctx.fillText(timeString, paddingX, textY);
+
+        textY += 65; 
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '34px "Poppins", "Segoe UI", sans-serif';
+        
+        let words = description.split(' ');
+        let line = ''; 
+        const maxWidth = CONTENT_WIDTH - 100;
+        const lineHeight = 48;
+
+        for(let n = 0; n < words.length; n++) {
+            let testLine = line + words[n] + ' ';
+            let metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                ctx.fillText(line, paddingX, textY);
+                line = words[n] + ' '; textY += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, paddingX, textY);
+
+        return new Promise(resolve => {
+            canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.78);
+        });
+    }
+
+    async function fetchDrive(url, options = {}) {
+        options.headers = { ...options.headers, 'Authorization': `Bearer ${accessToken}` };
+        let res = await fetch(url, options);
+        if (res.status === 401) {
+            localStorage.removeItem('gdrive_token');
+            localStorage.removeItem('gdrive_token_expiry');
+            alert("Sesi login Google Anda telah kedaluwarsa. Aplikasi akan dimuat ulang secara otomatis.");
+            window.location.reload();
+            throw new Error("Sesi login telah berakhir.");
+        }
+        return await res.json();
+    }
+
+    async function getOrCreateFolder(folderName, parentId = 'root') {
+        let q = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`;
+        let res = await fetchDrive(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
+        
+        if (res.files && res.files.length > 0) return res.files[0].id;
+
+        let createRes = await fetchDrive('https://www.googleapis.com/drive/v3/files', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: folderName, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] })
+        });
+        return createRes.id;
+    }
+
+    async function updateOrCreateTxt(folderIdHari, folderIdBulan, dateData, timeString, desc) {
+        let txtFilename = `Deskripsi_${dateData.year}${dateData.month}${dateData.day}.txt`;
+        let q = `name='${txtFilename}' and mimeType='text/plain' and '${folderIdHari}' in parents and trashed=false`;
+        let searchRes = await fetchDrive(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
+        
+        let linkBulan = `https://drive.google.com/drive/folders/${folderIdBulan}`;
+        let linkHari = `https://drive.google.com/drive/folders/${folderIdHari}`;
+        
+        let newEntry = `=================================\nWaktu: ${timeString}\nDeskripsi:\n${desc}`;
+        let linkText = `\n\n---------------------------------\n[ TAUTAN FOLDER DRIVE ]\n📁 Folder Bulan:\n${linkBulan}\n\n📁 Folder Hari:\n${linkHari}`;
+
+        if (searchRes.files && searchRes.files.length > 0) {
+            let fileId = searchRes.files[0].id;
+            let contentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            let oldContent = await contentRes.text();
+            
+            let marker = "---------------------------------\n[ TAUTAN FOLDER DRIVE ]";
+            let fallbackMarker = "[ Tautan Akses Folder Drive ]";
+            let cleanContent = oldContent;
+            
+            if (oldContent.includes(marker)) {
+                cleanContent = oldContent.substring(0, oldContent.indexOf(marker)).trimEnd();
+            } else if (oldContent.includes(fallbackMarker)) {
+                cleanContent = oldContent.substring(0, oldContent.indexOf(fallbackMarker)).trimEnd();
+            }
+            
+            let finalContent = cleanContent + '\n\n' + newEntry + linkText;
+
+            await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'text/plain' },
+                body: finalContent
+            });
+        } else {
+            let initialContent = `REKAPITULASI DESKRIPSI KEGIATAN\nTanggal: ${dateData.day}-${dateData.month}-${dateData.year}\n\n` + newEntry + linkText;
+            let metadata = { name: txtFilename, parents: [folderIdHari], mimeType: 'text/plain' };
+            let formData = new FormData();
+            formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            formData.append('file', new Blob([initialContent], { type: 'text/plain' }));
+
+            await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${accessToken}` },
+                body: formData
+            });
+        }
+    }
+
+    async function uploadToDrive(blob, filename, folderId) {
+        let metadata = { name: filename, parents: [folderId] };
+        let formData = new FormData();
+        formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        formData.append('file', blob);
+
+        let res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}` },
+            body: formData
+        });
+        return await res.json();
+    }
+
+    document.getElementById('btnUpload').onclick = async () => {
+        let currentExpiry = localStorage.getItem('gdrive_token_expiry');
+        if (!accessToken || !currentExpiry || Date.now() >= parseInt(currentExpiry)) {
+            alert("Sesi login Anda telah kedaluwarsa. Aplikasi akan dimuat ulang secara otomatis.");
+            localStorage.removeItem('gdrive_token');
+            localStorage.removeItem('gdrive_token_expiry');
+            window.location.reload();
+            return;
+        }
+
+        const files = document.getElementById('photos').files;
+        const desc = document.getElementById('description').value;
+        const fallbackDate = document.getElementById('fallbackDate').value;
+        const fallbackTimeStart = document.getElementById('fallbackTimeStart').value;
+        const fallbackTimeEnd = document.getElementById('fallbackTimeEnd').value;
+        const btn = document.getElementById('btnUpload');
+
+        if (files.length === 0) return alert('Pilih minimal 1 foto kegiatan!');
+
+        btn.disabled = true;
+        btn.innerText = "Memindai Data...";
+        
+        try {
+            logStatus("Memindai data waktu pada foto...", true);
+            
+            let allExifs = [];
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                let e = await getPhotoExifData(file);
+                allExifs.push({ file: file, exif: e, originalIndex: i });
+            }
+
+            let targetDate;
+            let exifMajorityDate = null;
+            let timeString = "";
+            let hasAnyExif = allExifs.some(item => item.exif !== null);
+            
+            if (hasAnyExif) {
+                let dateCounts = {};
+                for (let item of allExifs) {
+                    if (item.exif) {
+                        let dStr = `${item.exif.year}-${item.exif.month}-${item.exif.day}`;
+                        dateCounts[dStr] = (dateCounts[dStr] || 0) + 1;
+                    }
+                }
+                
+                let maxCount = 0;
+                let majorityDateStr = "";
+                for (let dStr in dateCounts) {
+                    if (dateCounts[dStr] > maxCount) {
+                        maxCount = dateCounts[dStr];
+                        majorityDateStr = dStr;
+                    }
+                }
+                
+                let parts = majorityDateStr.split('-');
+                exifMajorityDate = { year: parts[0], month: parts[1], day: parts[2] };
+            }
+
+            if (fallbackDate) {
+                let d = new Date(fallbackDate);
+                targetDate = {
+                    year: d.getFullYear().toString(),
+                    month: ('0' + (d.getMonth() + 1)).slice(-2),
+                    day: ('0' + d.getDate()).slice(-2)
+                };
+            } else if (exifMajorityDate) {
+                targetDate = exifMajorityDate;
+            } else {
+                throw new Error("Tidak ada data waktu di foto. Mohon isi kolom Tanggal manual.");
+            }
+
+            let validTimes = [];
+            let filesToRender = []; 
+
+            if (hasAnyExif && exifMajorityDate) {
+                let validItems = allExifs.filter(item => 
+                    item.exif && 
+                    item.exif.year === exifMajorityDate.year && 
+                    item.exif.month === exifMajorityDate.month && 
+                    item.exif.day === exifMajorityDate.day
+                );
+                
+                validItems.sort((a, b) => a.exif.totalMins - b.exif.totalMins);
+                validTimes = validItems.map(item => item.exif);
+                
+                let nonMajorityOrNoExif = allExifs.filter(item => 
+                    !item.exif || 
+                    item.exif.year !== exifMajorityDate.year || 
+                    item.exif.month !== exifMajorityDate.month || 
+                    item.exif.day !== exifMajorityDate.day
+                );
+                
+                filesToRender = validItems.map(item => item.file).concat(nonMajorityOrNoExif.map(item => item.file));
+            } else {
+                filesToRender = Array.from(files);
+            }
+
+            let startTimeStr = "";
+            let endTimeStr = "";
+            
+            if (fallbackTimeStart) {
+                let sParts = fallbackTimeStart.split(':');
+                startTimeStr = `${sParts[0]}.${sParts[1]}`;
+            } else if (validTimes.length > 0) {
+                let first = validTimes[0];
+                startTimeStr = `${first.hour}.${first.minute}`;
+            }
+            
+            if (fallbackTimeEnd) {
+                let eParts = fallbackTimeEnd.split(':');
+                endTimeStr = `${eParts[0]}.${eParts[1]}`;
+            } else if (validTimes.length > 0) {
+                let last = validTimes[validTimes.length - 1];
+                if (!fallbackTimeStart && !fallbackTimeEnd) {
+                    let first = validTimes[0];
+                    let diff = last.totalMins - first.totalMins;
+                    if (diff < 60) {
+                        endTimeStr = ""; 
+                    } else {
+                        endTimeStr = `${last.hour}.${last.minute}`;
+                    }
+                } else {
+                    endTimeStr = `${last.hour}.${last.minute}`;
+                }
+            }
+
+            if (startTimeStr && endTimeStr) {
+                timeString = `${startTimeStr} - ${endTimeStr} WITA`;
+            } else if (startTimeStr) {
+                timeString = `${startTimeStr} WITA - selesai`;
+            } else if (endTimeStr) {
+                timeString = `Selesai ${endTimeStr} WITA`; 
+            } else {
+                timeString = "(Waktu manual / tidak tercatat)";
+            }
+
+            const daysArr = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const monthsArr = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            let parsedDate = new Date(parseInt(targetDate.year), parseInt(targetDate.month) - 1, parseInt(targetDate.day));
+            let displayDate = `${daysArr[parsedDate.getDay()]}, ${targetDate.day} ${monthsArr[parsedDate.getMonth()]} ${targetDate.year}`;
+
+            logStatus("Menunggu konfirmasi Anda...", false);
+            let userConfirmed = await askUserConfirmation(displayDate, timeString);
+            
+            if (!userConfirmed) {
+                btn.disabled = false;
+                btn.innerText = "Susun Laporan A3 & Unggah";
+                logStatus("Proses dibatalkan oleh pengguna.", false);
+                return; 
+            }
+
+            btn.innerText = "Memproses & Mengunggah...";
+            logStatus("Menyusun Laporan A3...", true);
+            
+            let reportBlob = await createReportImage(filesToRender, desc, targetDate, timeString);
+
+            logStatus("Mengatur Folder Google Drive...", true);
+            let idUtama = await getOrCreateFolder("laporan kerja pegawai");
+            let idTahun = await getOrCreateFolder(targetDate.year, idUtama);
+            let idBulan = await getOrCreateFolder(targetDate.month, idTahun);
+            let idHari = await getOrCreateFolder(targetDate.day, idBulan);
+
+            logStatus("Mengunggah File Laporan & Rekap Teks...", true);
+            
+            let imgFilename = `Laporan_${targetDate.year}${targetDate.month}${targetDate.day}_${new Date().getTime()}.jpg`;
+            await uploadToDrive(reportBlob, imgFilename, idHari);
+
+            await updateOrCreateTxt(idHari, idBulan, targetDate, timeString, desc);
+
+            logStatus("✅ Laporan Berhasil Diunggah!", false);
+            alert('Laporan A3 berhasil disortir & hybrid waktu sukses disimpan di Drive!');
+            
+            document.getElementById('photos').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('charCount').innerText = '0';
+            
+        } catch (err) {
+            console.error(err);
+            logStatus("❌ Error: " + err.message, false);
+            if (err.message.includes("Sesi login")) alert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Susun Laporan A3 & Unggah";
+        }
+    };
+</script>
+</body>
+</html>
